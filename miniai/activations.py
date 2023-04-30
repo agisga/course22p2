@@ -2,16 +2,9 @@
 
 # %% ../nbs/10_activations.ipynb 2
 from __future__ import annotations
-import random,math,torch,matplotlib as mpl,numpy as np,matplotlib.pyplot as plt
+import random,math,torch,numpy as np,matplotlib.pyplot as plt
 import fastcore.all as fc
-from pathlib import Path
-from operator import attrgetter,itemgetter
 from functools import partial
-
-from torch import tensor,nn,optim
-import torch.nn.functional as F
-import torchvision.transforms.functional as TF
-from datasets import load_dataset
 
 from .datasets import *
 from .learner import *
@@ -46,16 +39,17 @@ class Hooks(list):
 
 # %% ../nbs/10_activations.ipynb 46
 class HooksCallback(Callback):
-    def __init__(self, hookfunc, mod_filter=fc.noop):
+    def __init__(self, hookfunc, mod_filter=fc.noop, on_train=True, on_valid=False, mods=None):
         fc.store_attr()
         super().__init__()
     
     def before_fit(self, learn):
-        mods = fc.filter_ex(learn.model.modules(), self.mod_filter)
+        if self.mods: mods=self.mods
+        else: mods = fc.filter_ex(learn.model.modules(), self.mod_filter)
         self.hooks = Hooks(mods, partial(self._hookfunc, learn))
 
     def _hookfunc(self, learn, *args, **kwargs):
-        if learn.training: self.hookfunc(*args, **kwargs)
+        if (self.on_train and learn.training) or (self.on_valid and not learn.training): self.hookfunc(*args, **kwargs)
 
     def after_fit(self, learn): self.hooks.remove()
     def __iter__(self): return iter(self.hooks)
