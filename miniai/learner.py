@@ -83,7 +83,7 @@ class DeviceCB(Callback):
 # %% ../nbs/09_learner.ipynb 40
 class TrainCB(Callback):
     def __init__(self, n_inp=1): self.n_inp = n_inp
-    def predict(self, learn): learn.preds = learn.model(*learn.batch[:self.n_inp])
+    def predict(self, learn): learn.preds = learn.model(*learn.batch[:self.n_inp])  # [AG]: batch is a tuple of (x, y), so [:self.n_inp] will be the x part
     def get_loss(self, learn): learn.loss = learn.loss_func(learn.preds, *learn.batch[self.n_inp:])
     def backward(self, learn): learn.loss.backward()
     def step(self, learn): learn.opt.step()
